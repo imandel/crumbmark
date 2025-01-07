@@ -5,6 +5,7 @@
 #include "esp_spi_flash.h"
 #include "esp_wifi.h"
 #include "esp_event_loop.h"
+#include "core_main.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "web_server.h"
@@ -67,6 +68,14 @@ void wifi_init_sta(void)
     ESP_LOGI(TAG, "wifi_init_sta finished.");
 }
 
+void coremark_task(void *pvParameters) {
+    ESP_LOGI(TAG, "Starting CoreMark benchmark");
+    while(1) {
+        main_coremark();
+        vTaskDelay(pdMS_TO_TICKS(30000)); // Run benchmark every 30 seconds
+    }
+}
+
 void app_main(void)
 {
     //Initialize NVS
@@ -86,4 +95,7 @@ void app_main(void)
         ESP_LOGE(TAG, "Failed to start web server!");
         return;
     }
+
+    // Create CoreMark task
+    xTaskCreate(coremark_task, "coremark", 8192, NULL, 5, NULL);
 }

@@ -91,7 +91,9 @@ MAIN_RETURN_TYPE main(void) {
 	int argc=0;
 	char *argv[1];
 #else
-MAIN_RETURN_TYPE main(int argc, char *argv[]) {
+MAIN_RETURN_TYPE main_coremark(void) {
+    int argc = 0;
+    char *argv[1];
 #endif
 	ee_u16 i,j=0,num_algorithms=0;
 	ee_s16 known_id=-1,total_errors=0;
