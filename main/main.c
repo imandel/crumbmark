@@ -19,6 +19,7 @@
 
 static const char *TAG = "main";
 static int s_retry_num = 0;
+static httpd_handle_t server = NULL;
 
 static esp_err_t event_handler(void *ctx, system_event_t *event)
 {
@@ -27,9 +28,20 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         esp_wifi_connect();
         break;
     case SYSTEM_EVENT_STA_GOT_IP:
-        ESP_LOGI(TAG, "got ip:%s",
+        ESP_LOGI(TAG, "Got IP: %s",
                 ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
         s_retry_num = 0;
+        
+        // Start the web server once we have an IP
+        if (server == NULL) {
+            server = start_webserver();
+            if (server == NULL) {
+                ESP_LOGE(TAG, "Failed to start web server!");
+            } else {
+                ESP_LOGI(TAG, "Web server started on IP: %s",
+                    ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
+            }
+        }
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
         if (s_retry_num < EXAMPLE_ESP_MAXIMUM_RETRY) {
@@ -79,11 +91,4 @@ void app_main(void)
 
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();
-    
-    // Start the web server
-    httpd_handle_t server = start_webserver();
-    if (server == NULL) {
-        ESP_LOGE(TAG, "Failed to start web server!");
-        return;
-    }
 }
