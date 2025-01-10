@@ -19,6 +19,9 @@ static void IRAM_ATTR cf1_isr_handler(void* arg) {
 esp_err_t hlw8012_init(const hlw8012_config_t *config) {
     sensor_config = *config;
     
+    // Install GPIO ISR service
+    ESP_ERROR_CHECK(gpio_install_isr_service(0));
+    
     // Configure GPIO pins
     gpio_config_t io_conf = {
         .intr_type = GPIO_INTR_POSEDGE,
