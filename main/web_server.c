@@ -17,6 +17,13 @@ static const char *TAG = "smart_plug_proxy";
 
 static void benchmark_task(void *pvParameters) {
     ee_printf("Starting CoreMark benchmark...\n");
+    
+    // Create a higher priority task to ensure system tasks can run
+    xTaskCreate(NULL, "system", 2048, NULL, configMAX_PRIORITIES-1, NULL);
+    
+    // Lower our own priority
+    vTaskPrioritySet(NULL, tskIDLE_PRIORITY + 1);
+    
     coremark_main();
     vTaskDelete(NULL);
 }
