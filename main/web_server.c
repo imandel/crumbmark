@@ -22,14 +22,17 @@ static void benchmark_task(void *pvParameters) {
     // Set high priority for benchmark task
     vTaskPrioritySet(NULL, configMAX_PRIORITIES - 1);
     
-    // Disable task switching during benchmark
-    vTaskSuspendAll();
+    // Ensure we're running at max priority
+    vTaskPrioritySet(NULL, configMAX_PRIORITIES - 1);
     
-    // Run benchmark with periodic yields
+    // Disable interrupts during critical timing sections
+    portDISABLE_INTERRUPTS();
+    
+    // Run benchmark
     coremark_main();
     
-    // Re-enable task switching
-    xTaskResumeAll();
+    // Re-enable interrupts
+    portENABLE_INTERRUPTS();
     
     vTaskDelete(NULL);
 }

@@ -22,7 +22,7 @@ Original Author: Shay Gal-on
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#define ITERATIONS 	20000000 // Increased for >10 sec runtime on ESP8266
+#define ITERATIONS 	50000000 // Further increased for >10 sec runtime
 
 #if VALIDATION_RUN
 	volatile ee_s32 seed1_volatile=0x3415;
@@ -82,12 +82,15 @@ void stop_time(void) {
 }
 
 CORE_TICKS get_time(void) {
-    return (CORE_TICKS)(MYTIMEDIFF(stop_time_val, start_time_val));
+    CORE_TICKS elapsed = MYTIMEDIFF(stop_time_val, start_time_val);
+    return elapsed;
 }
 
 secs_ret time_in_secs(CORE_TICKS ticks) {
-    // Convert microseconds to seconds with proper floating point division
-    secs_ret retval = ((double)ticks) / ((double)EE_TICKS_PER_SEC);
+    secs_ret retval = ((secs_ret)ticks) / ((secs_ret)EE_TICKS_PER_SEC);
+    if (retval < 0.001) {
+        ee_printf("WARNING: Timing might be too short!\n");
+    }
     return retval;
 }
 
