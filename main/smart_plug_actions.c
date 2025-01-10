@@ -14,7 +14,19 @@ static int plug_state = 0;
 static action_response_t handle_get_state(const cJSON *request) {
     action_response_t response = {0};
     cJSON *root = cJSON_CreateObject();
+    hlw8012_readings_t readings;
+    
+    // Add basic state
     cJSON_AddNumberToObject(root, "state", plug_state);
+    
+    // Add power readings if available
+    if (hlw8012_get_readings(&readings) == ESP_OK) {
+        cJSON_AddNumberToObject(root, "voltage", readings.voltage);
+        cJSON_AddNumberToObject(root, "current", readings.current);
+        cJSON_AddNumberToObject(root, "power", readings.power);
+        cJSON_AddNumberToObject(root, "energy", readings.energy);
+    }
+    
     response.response = cJSON_Print(root);
     response.status = ESP_OK;
     cJSON_Delete(root);
