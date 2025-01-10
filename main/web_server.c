@@ -2,7 +2,6 @@
 #include "esp_log.h"
 #include "esp_wifi.h"
 #include "nvs_flash.h"
-#include "protocol_examples_common.h"
 #include "esp_http_server.h"
 #include "esp_timer.h"
 #include "cJSON.h"
@@ -145,6 +144,8 @@ httpd_uri_t state_put_uri = {
 httpd_handle_t start_webserver() {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.server_port = 80;
+    config.lru_purge_enable = true;  // Enable LRU purge
+    config.max_uri_handlers = 8;     // Increase max handlers
 
     httpd_handle_t server = NULL;
     if (httpd_start(&server, &config) == ESP_OK) {
