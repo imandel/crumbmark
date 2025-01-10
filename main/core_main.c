@@ -309,8 +309,7 @@ MAIN_RETURN_TYPE coremark_main(void) {
 #if HAS_FLOAT
 	ee_printf("Time         : %.2f sec\n", (double)total_secs);
 	if (total_secs > 0)
-		ee_printf("Iterations/Sec:         : %lu\n", (long unsigned) default_num_contexts*results[0].iterations/total_secs);
-		// ee_printf("Iterations/Sec: %.2f\n", default_num_contexts*results[0].iterations/total_secs);
+		ee_printf("Iterations/Sec          : %.2f\n", (double)(default_num_contexts*results[0].iterations)/total_secs);
 #else 
 	ee_printf("Time         : %d sec\n", total_secs);
 	if (total_secs > 0)
