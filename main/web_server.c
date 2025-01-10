@@ -28,17 +28,12 @@ static void system_monitor_task(void *pvParameters) {
 static void benchmark_task(void *pvParameters) {
     ee_printf("Starting CoreMark benchmark...\n");
     
-    // Run benchmark at higher priority to ensure accurate timing
-    vTaskPrioritySet(NULL, configMAX_PRIORITIES-2);
-    
-    // Temporarily suspend the idle task to reduce interference
-    vTaskSuspend(xTaskGetIdleTaskHandle());
+    // Set appropriate priority for ESP8266
+    vTaskPrioritySet(NULL, tskIDLE_PRIORITY + 2);
     
     // Run benchmark with periodic yields
     coremark_main();
     
-    // Resume idle task and cleanup
-    vTaskResume(xTaskGetIdleTaskHandle());
     vTaskDelete(NULL);
 }
 
@@ -46,7 +41,7 @@ esp_err_t benchmark_handler(httpd_req_t *req) {
     char response[64];
     
     // Create a task to run the benchmark
-    xTaskCreate(benchmark_task, "benchmark", 16384, NULL, tskIDLE_PRIORITY + 2, NULL);
+    xTaskCreate(benchmark_task, "benchmark", 4096, NULL, tskIDLE_PRIORITY + 2, NULL);
     
     snprintf(response, sizeof(response), "Benchmark started");
     httpd_resp_send(req, response, strlen(response));
