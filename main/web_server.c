@@ -15,16 +15,7 @@
 
 static const char *TAG = "smart_plug_proxy";
 
-// Forward declaration
-static void benchmark_task(void *pvParameters);
-
-// Implementation
-static void system_monitor_task(void *pvParameters) {
-    while(1) {
-        vTaskDelay(pdMS_TO_TICKS(100));  // 100ms delay
-    }
-}
-
+// Forward declaration and implementation of benchmark task
 static void benchmark_task(void *pvParameters) {
     ee_printf("Starting CoreMark benchmark...\n");
     
