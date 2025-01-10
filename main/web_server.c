@@ -3,6 +3,7 @@
 #include "esp_wifi.h"
 #include "core_main.h"
 #include "nvs_flash.h"
+#include "freertos/task.h"
 #include "esp_http_server.h"
 #include "esp_timer.h"
 #include "cJSON.h"
@@ -14,14 +15,19 @@
 
 static const char *TAG = "smart_plug_proxy";
 
+static void benchmark_task(void *pvParameters) {
+    ee_printf("Starting CoreMark benchmark...\n");
+    coremark_main();
+    vTaskDelete(NULL);
+}
+
 esp_err_t benchmark_handler(httpd_req_t *req) {
     char response[64];
     
-    // Run CoreMark benchmark
-    ee_printf("Starting CoreMark benchmark...\n");
-    coremark_main();
+    // Create a task to run the benchmark
+    xTaskCreate(benchmark_task, "benchmark", 8192, NULL, 5, NULL);
     
-    snprintf(response, sizeof(response), "Benchmark completed");
+    snprintf(response, sizeof(response), "Benchmark started");
     httpd_resp_send(req, response, strlen(response));
     return ESP_OK;
 }
