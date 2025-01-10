@@ -304,7 +304,9 @@ MAIN_RETURN_TYPE coremark_main(int argc, char *argv[]) {
 	if (time_in_secs(total_time) > 0)
 		ee_printf("Iterations/Sec   : %d\n",default_num_contexts*results[0].iterations/time_in_secs(total_time));
 #endif
-	if (time_in_secs(total_time) < 10) {
+	secs_ret total_secs = time_in_secs(total_time);
+	ee_printf("Debug: Total execution time: %f seconds\n", (double)total_secs);
+	if (total_secs < 10) {
 		ee_printf("ERROR! Must execute for at least 10 secs for a valid result!\n");
 		total_errors++;
 	}

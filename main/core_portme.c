@@ -72,22 +72,27 @@ static CORETIMETYPE start_time_val, stop_time_val;
 void start_time(void) {
     taskENTER_CRITICAL();
     GETMYTIME(&start_time_val);
+    ee_printf("Debug: start_time = %lld\n", (long long)start_time_val);
     taskEXIT_CRITICAL();
 }
 
 void stop_time(void) {
     taskENTER_CRITICAL();
     GETMYTIME(&stop_time_val);
+    ee_printf("Debug: stop_time = %lld\n", (long long)stop_time_val);
     taskEXIT_CRITICAL();
 }
 
 CORE_TICKS get_time(void) {
     CORE_TICKS elapsed = MYTIMEDIFF(stop_time_val, start_time_val);
+    ee_printf("Debug: elapsed ticks = %lld\n", (long long)elapsed);
     return elapsed;
 }
 
 secs_ret time_in_secs(CORE_TICKS ticks) {
     secs_ret retval = ((secs_ret)ticks) / ((secs_ret)EE_TICKS_PER_SEC);
+    ee_printf("Debug: Converting %lld ticks to seconds (EE_TICKS_PER_SEC=%lld): %f secs\n",
+              (long long)ticks, (long long)EE_TICKS_PER_SEC, (double)retval);
     if (retval < 0.001) {
         ee_printf("WARNING: Timing might be too short!\n");
     }
