@@ -91,8 +91,8 @@ CORE_TICKS get_time(void) {
 
 secs_ret time_in_secs(CORE_TICKS ticks) {
     secs_ret retval = ((secs_ret)ticks) / ((secs_ret)EE_TICKS_PER_SEC);
-    ee_printf("Debug: Converting %d ticks to seconds (EE_TICKS_PER_SEC=%d): %f secs\n",
-              (int)ticks, (int)EE_TICKS_PER_SEC, (double)retval);
+    ee_printf("Debug: Converting %lld ticks to seconds (EE_TICKS_PER_SEC=%lld): %.3f secs\n",
+              ticks, EE_TICKS_PER_SEC, (double)retval);
     if (retval < 10.0) {
         ee_printf("WARNING: Runtime (%f secs) is less than required 10 seconds!\n", (double)retval);
     }
