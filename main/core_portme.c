@@ -91,8 +91,8 @@ CORE_TICKS get_time(void) {
 }
 
 secs_ret time_in_secs(CORE_TICKS ticks) {
-    ee_printf("Debug - ticks (raw): %lld\n", (long long)ticks);
-    ee_printf("Debug - EE_TICKS_PER_SEC (raw): %lld\n", (long long)EE_TICKS_PER_SEC);
+    ee_printf("Debug - ticks (raw): %lu\n", (unsigned long)ticks);
+    ee_printf("Debug - EE_TICKS_PER_SEC (raw): %lu\n", (unsigned long)EE_TICKS_PER_SEC);
     
     secs_ret ticks_cast = (secs_ret)ticks;
     secs_ret hz_cast = (secs_ret)EE_TICKS_PER_SEC;
