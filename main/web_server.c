@@ -18,8 +18,8 @@ static const char *TAG = "smart_plug_proxy";
 static void benchmark_task(void *pvParameters) {
     ee_printf("Starting CoreMark benchmark...\n");
     
-    // Create a higher priority task to ensure system tasks can run
-    xTaskCreate(NULL, "system", 2048, NULL, configMAX_PRIORITIES-1, NULL);
+    // Create a higher priority task for system monitoring
+    xTaskCreate(&vTaskDelay, "system", 2048, NULL, configMAX_PRIORITIES-1, NULL);
     
     // Lower our own priority
     vTaskPrioritySet(NULL, tskIDLE_PRIORITY + 1);
@@ -32,7 +32,7 @@ esp_err_t benchmark_handler(httpd_req_t *req) {
     char response[64];
     
     // Create a task to run the benchmark
-    xTaskCreate(benchmark_task, "benchmark", 8192, NULL, 5, NULL);
+    xTaskCreate(benchmark_task, "benchmark", 16384, NULL, tskIDLE_PRIORITY + 2, NULL);
     
     snprintf(response, sizeof(response), "Benchmark started");
     httpd_resp_send(req, response, strlen(response));
