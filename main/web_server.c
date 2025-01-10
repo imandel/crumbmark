@@ -1,6 +1,7 @@
 #include "web_server.h"
 #include "esp_log.h"
 #include "esp_wifi.h"
+#include "coremark.h"
 #include "nvs_flash.h"
 #include "esp_http_server.h"
 #include "esp_timer.h"
@@ -12,6 +13,19 @@
 
 
 static const char *TAG = "smart_plug_proxy";
+
+esp_err_t benchmark_handler(httpd_req_t *req) {
+    char response[64];
+    
+    // Run CoreMark benchmark
+    int argc = 0;
+    char *argv[] = {NULL};
+    main(argc, argv);
+    
+    snprintf(response, sizeof(response), "Benchmark completed");
+    httpd_resp_send(req, response, strlen(response));
+    return ESP_OK;
+}
 
 SemaphoreHandle_t mutex;
 esp_timer_handle_t status_timer;
@@ -163,6 +177,14 @@ httpd_handle_t start_webserver() {
         httpd_register_uri_handler(server, &status_uri);
         httpd_register_uri_handler(server, &state_get_uri);
         httpd_register_uri_handler(server, &state_put_uri);
+    
+        httpd_uri_t benchmark_uri = {
+            .uri = "/benchmark",
+            .method = HTTP_GET,
+            .handler = benchmark_handler,
+            .user_ctx = NULL
+        };
+        httpd_register_uri_handler(server, &benchmark_uri);
         return server;
     }
     ESP_LOGE(TAG, "Failed to start webserver");
