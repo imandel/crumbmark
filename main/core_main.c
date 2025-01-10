@@ -216,8 +216,6 @@ MAIN_RETURN_TYPE coremark_main(int argc, char *argv[]) {
 	}
 	/* perform actual benchmark */
 	start_time();
-	// Yield to prevent watchdog
-	vTaskDelay(1);
 #if (MULTITHREAD>1)
 	if (default_num_contexts>MULTITHREAD) {
 		default_num_contexts=MULTITHREAD;
@@ -231,9 +229,13 @@ MAIN_RETURN_TYPE coremark_main(int argc, char *argv[]) {
 		core_stop_parallel(&results[i]);
 	}
 #else
-	iterate(&results[0]);
-	// Yield to prevent watchdog
-	vTaskDelay(1); 
+	// Break up iteration into chunks with yields
+	for (int chunk = 0; chunk < results[0].iterations; chunk += 1000) {
+		int chunk_size = (results[0].iterations - chunk) > 1000 ? 1000 : (results[0].iterations - chunk);
+		results[0].iterations = chunk_size;
+		iterate(&results[0]);
+		vTaskDelay(1); // Yield to prevent watchdog
+	}
 #endif
 	stop_time();
 	total_time=get_time();
