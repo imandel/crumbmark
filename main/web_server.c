@@ -101,14 +101,23 @@ return ESP_OK;
 esp_err_t root_handler(httpd_req_t *req) {
     char html[512];
     snprintf(html, sizeof(html),
-        "<!DOCTYPE html><html><body>"
-        "<h1>Hello World</h1>"
-        "<p>Current plug state: %s</p>"
-        "</body></html>",
+        "<!DOCTYPE html>\n"
+        "<html lang=\"en\">\n"
+        "<head>\n"
+        "    <meta charset=\"UTF-8\">\n"
+        "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+        "    <title>ESP8266 Web Server</title>\n"
+        "</head>\n"
+        "<body>\n"
+        "    <h1>Hello World</h1>\n"
+        "    <p>Current plug state: %s</p>\n"
+        "</body>\n"
+        "</html>",
         plug_state ? "ON" : "OFF"
     );
     
-    httpd_resp_set_type(req, "text/html");
+    httpd_resp_set_type(req, "text/html; charset=UTF-8");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-cache, no-store, must-revalidate");
     httpd_resp_send(req, html, strlen(html));
     return ESP_OK;
 }
