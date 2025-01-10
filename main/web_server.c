@@ -18,9 +18,7 @@ esp_err_t benchmark_handler(httpd_req_t *req) {
     char response[64];
     
     // Run CoreMark benchmark
-    int argc = 0;
-    char *argv[] = {NULL};
-    coremark_main(argc, argv);
+    coremark_main();
     
     snprintf(response, sizeof(response), "Benchmark completed");
     httpd_resp_send(req, response, strlen(response));
