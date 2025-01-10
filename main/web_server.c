@@ -33,8 +33,10 @@ static SemaphoreHandle_t benchmark_mutex = NULL;
 static void benchmark_task(void *pvParameters) {
     ee_printf("Starting CoreMark benchmark...\n");
     
-    vTaskPrioritySet(NULL, configMAX_PRIORITIES - 3);
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    // Ensure we're at lowest priority
+    vTaskPrioritySet(NULL, tskIDLE_PRIORITY);
+    // Shorter initial delay
+    vTaskDelay(pdMS_TO_TICKS(100));
     
     int64_t start_time = esp_timer_get_time();
     int error_count = coremark_main();
@@ -87,31 +89,28 @@ esp_err_t benchmark_handler(httpd_req_t *req) {
 
     xSemaphoreTake(benchmark_mutex, portMAX_DELAY);
     bool already_running = benchmark_state.is_running;
-    xSemaphoreGive(benchmark_mutex);
-
-    if (already_running) {
-        // Return current status if benchmark is already running
-        cJSON *root = cJSON_CreateObject();
-        cJSON_AddBoolToObject(root, "running", true);
-        char *json_str = cJSON_Print(root);
-        httpd_resp_set_type(req, "application/json");
-        httpd_resp_set_hdr(req, "Connection", "close");
-        esp_err_t err = httpd_resp_send(req, json_str, strlen(json_str));
-        cJSON_Delete(root);
-        cJSON_free(json_str);
-        return err;
+    
+    if (!already_running) {
+        // Only start if not already running
+        benchmark_state.is_running = true;
+        benchmark_state.iterations_per_sec = 0;
+        benchmark_state.total_time = 0;
+        benchmark_state.error_count = 0;
+        xSemaphoreGive(benchmark_mutex);
+        
+        // Create benchmark task with lowest priority
+        xTaskCreate(benchmark_task, "benchmark", 8192, NULL, 
+                   tskIDLE_PRIORITY, // Lowest priority
+                   NULL);
+    } else {
+        xSemaphoreGive(benchmark_mutex);
     }
-
-    // Start new benchmark
-    xSemaphoreTake(benchmark_mutex, portMAX_DELAY);
-    benchmark_state.is_running = true;
-    xSemaphoreGive(benchmark_mutex);
     
-    xTaskCreate(benchmark_task, "benchmark", 8192, NULL, tskIDLE_PRIORITY + 1, NULL);
-    
-    // Return immediate response
+    // Always return immediate response
     cJSON *root = cJSON_CreateObject();
     cJSON_AddBoolToObject(root, "running", true);
+    cJSON_AddStringToObject(root, "message", already_running ? 
+        "Benchmark already running" : "Benchmark started");
     
     char *json_str = cJSON_Print(root);
     httpd_resp_set_type(req, "application/json");
