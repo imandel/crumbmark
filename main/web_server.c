@@ -98,33 +98,45 @@ esp_err_t state_put_handler(httpd_req_t *req) {
     ret = httpd_req_recv(req, buf, sizeof(buf));
     if (ret <= 0) {
         if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
-             httpd_resp_send_408(req);
+            httpd_resp_send_408(req);
         }
         return ESP_FAIL;
     }
 
-
     cJSON *root = cJSON_Parse(buf);
-    if (root == NULL){
-         httpd_resp_send_408(req);
-    } else {
-        cJSON *state_item = cJSON_GetObjectItem(root, "state");
-        if (state_item != NULL && cJSON_IsNumber(state_item)) {
+    if (root == NULL) {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid JSON");
+        return ESP_FAIL;
+    }
+
+    cJSON *state_item = cJSON_GetObjectItem(root, "state");
+    if (state_item != NULL && cJSON_IsNumber(state_item)) {
         // Protect the plug state shared variable with mutex
         xSemaphoreTake(mutex, portMAX_DELAY);
-            plug_state = state_item->valueint;
-            xSemaphoreGive(mutex);
-            cJSON_Delete(root);
-
-            // Simulate a small delay
-            vTaskDelay(pdMS_TO_TICKS(10));
-            // httpd_resp_send(req, "state updated", HTTPD_RESP_AUTO);
-            httpd_resp_send_408(req);
-        } else{
-            httpd_resp_send_408(req);
-        }
+        plug_state = state_item->valueint;
+        xSemaphoreGive(mutex);
+        
+        // Create response
+        cJSON *response = cJSON_CreateObject();
+        cJSON_AddNumberToObject(response, "state", plug_state);
+        char *json_str = cJSON_Print(response);
+        
+        // Send response
+        httpd_resp_set_type(req, "application/json");
+        httpd_resp_set_hdr(req, "Connection", "close");
+        esp_err_t err = httpd_resp_send(req, json_str, strlen(json_str));
+        
+        // Cleanup
+        cJSON_Delete(root);
+        cJSON_Delete(response);
+        cJSON_free(json_str);
+        
+        return err;
+    } else {
+        cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Missing or invalid 'state' field");
+        return ESP_FAIL;
     }
-return ESP_OK;
 }
 
 // Handler for root URL
