@@ -225,15 +225,22 @@ MAIN_RETURN_TYPE coremark_main(void) {
 		core_stop_parallel(&results[i]);
 	}
 #else
-	// Break up iteration into chunks with yields
+	// Break up iteration into smaller chunks with more frequent yields
 	int total_iterations = results[0].iterations;
-	int chunk_size = 10000; // Larger chunks for better timing
+	int chunk_size = 1000; // Smaller chunks to prevent watchdog
 	
 	for (int chunk = 0; chunk < total_iterations; chunk += chunk_size) {
 		int current_chunk = (total_iterations - chunk) > chunk_size ? chunk_size : (total_iterations - chunk);
 		results[0].iterations = current_chunk;
 		iterate(&results[0]);
-		vTaskDelay(pdMS_TO_TICKS(1)); // Brief yield to prevent watchdog
+		
+		// More frequent yields to prevent watchdog
+		vTaskDelay(1);
+		
+		// Allow other tasks to run every 10 chunks
+		if ((chunk % (chunk_size * 10)) == 0) {
+			vTaskDelay(pdMS_TO_TICKS(10));
+		}
 	}
 	
 	// Restore total iterations for reporting
