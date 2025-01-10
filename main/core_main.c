@@ -91,9 +91,6 @@ char *mem_name[3] = {"Static","Heap","Stack"};
 MAIN_RETURN_TYPE coremark_main(void) {
 	int argc=0;
 	char *argv[1] = {NULL};
-#else
-MAIN_RETURN_TYPE coremark_main(int argc, char *argv[]) {
-#endif
 	ee_u16 i,j=0,num_algorithms=0;
 	ee_s16 known_id=-1,total_errors=0;
 	ee_u16 seedcrc=0;
