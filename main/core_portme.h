@@ -60,8 +60,8 @@ Original Author: Shay Gal-on
 /* Configuration : CORE_TICKS
 	Define type of return from the timing functions.
  */
-#include <time.h>
-typedef clock_t CORE_TICKS;
+#include <stdint.h>
+typedef int64_t CORE_TICKS;
 
 /* Definitions : COMPILER_VERSION, COMPILER_FLAGS, MEM_LOCATION
 	Initialize these strings per platform

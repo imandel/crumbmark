@@ -22,7 +22,7 @@ Original Author: Shay Gal-on
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#define ITERATIONS 	200000 // Increased to ensure >10 sec runtime
+#define ITERATIONS 	2000000 // Further increased to ensure >10 sec runtime
 
 #if VALIDATION_RUN
 	volatile ee_s32 seed1_volatile=0x3415;
@@ -82,7 +82,8 @@ CORE_TICKS get_time(void) {
 }
 
 secs_ret time_in_secs(CORE_TICKS ticks) {
-    secs_ret retval = ((secs_ret)ticks) / ((secs_ret)EE_TICKS_PER_SEC);
+    // Convert microseconds to seconds with proper floating point division
+    secs_ret retval = ((double)ticks) / ((double)EE_TICKS_PER_SEC);
     return retval;
 }
 
