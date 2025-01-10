@@ -11,12 +11,24 @@
 #include "esp_http_client.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-
+#include "freertos/queue.h"
 
 static const char *TAG = "smart_plug_proxy";
 
+// Structure to hold benchmark results
+typedef struct {
+    int iterations_per_sec;
+    float total_time;
+    int error_count;
+} benchmark_result_t;
+
+// Queue handle for benchmark results
+static QueueHandle_t benchmark_queue = NULL;
+
 // Forward declaration and implementation of benchmark task
 static void benchmark_task(void *pvParameters) {
+    benchmark_result_t result = {0};
+    
     ee_printf("Starting CoreMark benchmark...\n");
     
     // Set moderate priority to allow system tasks to run
@@ -25,21 +37,54 @@ static void benchmark_task(void *pvParameters) {
     // Allow WiFi and system tasks to stabilize
     vTaskDelay(pdMS_TO_TICKS(1000));
     
+    // Record start time
+    int64_t start_time = esp_timer_get_time();
+    
     // Run benchmark with interrupts enabled to maintain system stability
-    coremark_main();
+    result.error_count = coremark_main();
+    
+    // Calculate results
+    result.total_time = (esp_timer_get_time() - start_time) / 1000000.0; // Convert to seconds
+    result.iterations_per_sec = (result.total_time > 0) ? (1000 / result.total_time) : 0;
+    
+    // Send results to queue
+    xQueueSend(benchmark_queue, &result, portMAX_DELAY);
     
     vTaskDelete(NULL);
 }
 
 esp_err_t benchmark_handler(httpd_req_t *req) {
-    char response[64];
+    // Create queue if it doesn't exist
+    if (benchmark_queue == NULL) {
+        benchmark_queue = xQueueCreate(1, sizeof(benchmark_result_t));
+    }
     
     // Create a task to run the benchmark
     xTaskCreate(benchmark_task, "benchmark", 8192, NULL, tskIDLE_PRIORITY + 1, NULL);
     
-    snprintf(response, sizeof(response), "Benchmark started");
-    httpd_resp_send(req, response, strlen(response));
-    return ESP_OK;
+    // Wait for results
+    benchmark_result_t result;
+    if (xQueueReceive(benchmark_queue, &result, pdMS_TO_TICKS(30000)) != pdTRUE) {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+    
+    // Create JSON response
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddNumberToObject(root, "iterations_per_sec", result.iterations_per_sec);
+    cJSON_AddNumberToObject(root, "total_time_seconds", result.total_time);
+    cJSON_AddNumberToObject(root, "error_count", result.error_count);
+    
+    char *json_str = cJSON_Print(root);
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Connection", "close");
+    esp_err_t err = httpd_resp_send(req, json_str, strlen(json_str));
+    
+    // Cleanup
+    cJSON_Delete(root);
+    cJSON_free(json_str);
+    
+    return err;
 }
 
 SemaphoreHandle_t mutex;
