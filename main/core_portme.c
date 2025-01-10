@@ -20,6 +20,7 @@ Original Author: Shay Gal-on
 #include <stdlib.h>
 #include "coremark.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #define ITERATIONS 	25000 // Increased from default to ensure >10 sec runtime
 
