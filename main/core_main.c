@@ -90,8 +90,8 @@ char *mem_name[3] = {"Static","Heap","Stack"};
 
 #if MAIN_HAS_NOARGC
 MAIN_RETURN_TYPE coremark_main(void) {
-	int argc=0;
-	char *argv[1] = {NULL};
+	int argc=1;
+	char *argv[1] = {"coremark"};
 #else
 MAIN_RETURN_TYPE coremark_main(int argc, char *argv[]) {
 #endif
