@@ -22,7 +22,7 @@ Original Author: Shay Gal-on
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#define ITERATIONS 	2000000 // Further increased to ensure >10 sec runtime
+#define ITERATIONS 	10000000 // Increased to ensure >10 sec runtime on ESP32
 
 #if VALIDATION_RUN
 	volatile ee_s32 seed1_volatile=0x3415;
@@ -70,11 +70,16 @@ static CORETIMETYPE start_time_val, stop_time_val;
 	or zeroing some system parameters - e.g. setting the cpu clocks cycles to 0.
 */
 void start_time(void) {
+    // Ensure high-resolution timing
+    portDISABLE_INTERRUPTS();
     GETMYTIME(&start_time_val);
+    portENABLE_INTERRUPTS();
 }
 
 void stop_time(void) {
+    portDISABLE_INTERRUPTS();
     GETMYTIME(&stop_time_val);
+    portENABLE_INTERRUPTS();
 }
 
 CORE_TICKS get_time(void) {
