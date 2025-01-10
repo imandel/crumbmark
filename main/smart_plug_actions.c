@@ -14,18 +14,23 @@ static int plug_state = 0;
 static action_response_t handle_get_state(const cJSON *request) {
     action_response_t response = {0};
     cJSON *root = cJSON_CreateObject();
-    hlw8012_readings_t readings;
+    hlw8012_readings_t readings = {0};  // Initialize to zeros
     
     // Add basic state
     cJSON_AddNumberToObject(root, "state", plug_state);
     
-    // Add power readings if available
-    if (hlw8012_get_readings(&readings) == ESP_OK) {
-        cJSON_AddNumberToObject(root, "voltage", readings.voltage);
-        cJSON_AddNumberToObject(root, "current", readings.current);
-        cJSON_AddNumberToObject(root, "power", readings.power);
-        cJSON_AddNumberToObject(root, "energy", readings.energy);
+    // Always add power readings, even if zero
+    esp_err_t ret = hlw8012_get_readings(&readings);
+    if (ret != ESP_OK) {
+        ESP_LOGW(TAG, "HLW8012 read failed: %d, returning zeros", ret);
+        // readings struct already initialized to zeros
     }
+    
+    // Always include these fields
+    cJSON_AddNumberToObject(root, "voltage", readings.voltage);
+    cJSON_AddNumberToObject(root, "current", readings.current);
+    cJSON_AddNumberToObject(root, "power", readings.power);
+    cJSON_AddNumberToObject(root, "energy", readings.energy);
     
     response.response = cJSON_Print(root);
     response.status = ESP_OK;
