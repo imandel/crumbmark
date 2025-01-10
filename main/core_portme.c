@@ -22,7 +22,7 @@ Original Author: Shay Gal-on
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#define ITERATIONS 	500000000 // Further increased to ensure >10 sec runtime on ESP8266
+#define ITERATIONS 	2000000000 // Significantly increased to ensure >10 sec runtime on ESP8266
 
 #if VALIDATION_RUN
 	volatile ee_s32 seed1_volatile=0x3415;

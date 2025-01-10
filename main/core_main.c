@@ -226,12 +226,18 @@ MAIN_RETURN_TYPE coremark_main(void) {
 	}
 #else
 	// Break up iteration into chunks with yields
-	for (int chunk = 0; chunk < results[0].iterations; chunk += 1000) {
-		int chunk_size = (results[0].iterations - chunk) > 1000 ? 1000 : (results[0].iterations - chunk);
-		results[0].iterations = chunk_size;
+	int total_iterations = results[0].iterations;
+	int chunk_size = 10000; // Larger chunks for better timing
+	
+	for (int chunk = 0; chunk < total_iterations; chunk += chunk_size) {
+		int current_chunk = (total_iterations - chunk) > chunk_size ? chunk_size : (total_iterations - chunk);
+		results[0].iterations = current_chunk;
 		iterate(&results[0]);
-		vTaskDelay(1); // Yield to prevent watchdog
+		vTaskDelay(pdMS_TO_TICKS(1)); // Brief yield to prevent watchdog
 	}
+	
+	// Restore total iterations for reporting
+	results[0].iterations = total_iterations;
 #endif
 	stop_time();
 	total_time=get_time();
