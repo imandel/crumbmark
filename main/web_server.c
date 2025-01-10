@@ -81,10 +81,11 @@ esp_err_t state_get_handler(httpd_req_t *req) {
     cJSON *state_json = create_json_state();
     char *json_str = cJSON_Print(state_json);
     httpd_resp_set_type(req, "application/json");
-    httpd_resp_send(req, json_str, strlen(json_str));
+    httpd_resp_set_hdr(req, "Connection", "close");
+    esp_err_t err = httpd_resp_send(req, json_str, strlen(json_str));
     cJSON_Delete(state_json);
     cJSON_free(json_str);
-    return ESP_OK;
+    return err;
 }
 
 
