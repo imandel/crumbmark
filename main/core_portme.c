@@ -21,7 +21,7 @@ Original Author: Shay Gal-on
 #include "coremark.h"
 #include "freertos/FreeRTOS.h"
 
-#define ITERATIONS 	CONFIG_ITERATIONS
+#define ITERATIONS 	25000 // Increased from default to ensure >10 sec runtime
 
 #if VALIDATION_RUN
 	volatile ee_s32 seed1_volatile=0x3415;
@@ -51,11 +51,12 @@ Original Author: Shay Gal-on
 	Use lower values to increase resolution, but make sure that overflow does not occur.
 	If there are issues with the return value overflowing, increase this value.
 	*/
-#define NSECS_PER_SEC CLOCKS_PER_SEC
-#define CORETIMETYPE clock_t 
-#define GETMYTIME(_t) (*_t=clock())
+#include "esp_timer.h"
+#define NSECS_PER_SEC 1000000 // ESP timer gives microseconds
+#define CORETIMETYPE int64_t
+#define GETMYTIME(_t) (*_t=esp_timer_get_time())
 #define MYTIMEDIFF(fin,ini) ((fin)-(ini))
-#define TIMER_RES_DIVIDER 1
+#define TIMER_RES_DIVIDER 1000000 // Convert microseconds to seconds
 #define SAMPLE_TIME_IMPLEMENTATION 1
 #define EE_TICKS_PER_SEC (NSECS_PER_SEC / TIMER_RES_DIVIDER)
 
