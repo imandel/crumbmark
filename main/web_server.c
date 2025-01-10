@@ -284,7 +284,6 @@ httpd_handle_t start_webserver() {
     config.lru_purge_enable = true;      // Enable LRU purge
     config.max_uri_handlers = 8;         // Increase max handlers
     config.max_open_sockets = 3;         // Allow multiple concurrent connections
-    config.core_id = tskNO_AFFINITY;     // Allow running on any core
     config.task_priority = 5;            // Higher priority for server task
     config.stack_size = 4096;            // Increased stack size
 
