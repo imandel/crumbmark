@@ -86,6 +86,8 @@ typedef int64_t CORE_TICKS;
 	*Imprtant* :
 	ee_ptr_int needs to be the data type used to hold pointers, otherwise coremark may fail!!!
 */
+#include <stddef.h>  /* for size_t */
+
 typedef signed short ee_s16;
 typedef unsigned short ee_u16;
 typedef signed int ee_s32;
