@@ -105,12 +105,16 @@ esp_err_t state_put_handler(httpd_req_t *req) {
 
     cJSON *root = cJSON_Parse(buf);
     if (root == NULL) {
-        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid JSON");
+        httpd_resp_send_500(req);
         return ESP_FAIL;
     }
 
     cJSON *state_item = cJSON_GetObjectItem(root, "state");
-    if (state_item != NULL && cJSON_IsNumber(state_item)) {
+    if (state_item == NULL || !cJSON_IsNumber(state_item)) {
+        cJSON_Delete(root);
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
         // Protect the plug state shared variable with mutex
         xSemaphoreTake(mutex, portMAX_DELAY);
         plug_state = state_item->valueint;
