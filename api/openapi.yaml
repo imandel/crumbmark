@@ -1,0 +1,200 @@
+openapi: 3.0.0
+info:
+  title: Smart Plug API
+  description: API for controlling and monitoring a smart plug device with power measurement capabilities
+  version: 1.0.0
+
+servers:
+  - url: http://{device_ip}
+    variables:
+      device_ip:
+        description: IP address of the smart plug
+        default: 192.168.1.100
+
+paths:
+  /plug/status:
+    get:
+      summary: Get plug status information
+      description: Returns device status including firmware version
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  firmware:
+                    type: string
+                    description: Current firmware version
+                    example: "1.0.0"
+
+  /plug/state:
+    get:
+      summary: Get current plug state and power readings
+      description: Returns the current on/off state and power measurements
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  state:
+                    type: integer
+                    enum: [0, 1]
+                    description: 0 for off, 1 for on
+                    example: 1
+                  voltage:
+                    type: number
+                    description: Current voltage (V)
+                    example: 230.5
+                  current:
+                    type: number
+                    description: Current draw (A)
+                    example: 0.5
+                  power:
+                    type: number
+                    description: Active power (W)
+                    example: 115.25
+                  energy:
+                    type: number
+                    description: Energy consumption (kWh)
+                    example: 1.234
+
+    put:
+      summary: Set plug state
+      description: Change the on/off state of the plug
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - state
+              properties:
+                state:
+                  type: integer
+                  enum: [0, 1]
+                  description: 0 for off, 1 for on
+      responses:
+        '200':
+          description: State updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  state:
+                    type: integer
+                    enum: [0, 1]
+                    description: New state of the plug
+        '500':
+          description: Invalid state value or internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /plug/power:
+    get:
+      summary: Get power measurements
+      description: Returns current power consumption measurements from the HLW8012 sensor
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  voltage:
+                    type: number
+                    description: Current voltage (V)
+                    example: 230.5
+                  current:
+                    type: number
+                    description: Current draw (A)
+                    example: 0.5
+                  power:
+                    type: number
+                    description: Active power (W)
+                    example: 115.25
+                  energy:
+                    type: number
+                    description: Energy consumption (kWh)
+                    example: 1.234
+        '500':
+          description: Failed to read power measurements
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /benchmark:
+    get:
+      summary: Start CoreMark benchmark
+      description: Initiates a CoreMark benchmark run
+      responses:
+        '200':
+          description: Benchmark started successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  running:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Benchmark started"
+
+  /benchmark/results:
+    get:
+      summary: Get benchmark results
+      description: Returns the results of the last CoreMark benchmark run
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  running:
+                    type: boolean
+                    description: Whether benchmark is currently running
+                  iterations_per_sec:
+                    type: number
+                    description: Performance metric (only present when not running)
+                  total_time_seconds:
+                    type: number
+                    description: Total benchmark duration (only present when not running)
+                  error_count:
+                    type: integer
+                    description: Number of errors encountered (only present when not running)
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message
+          example: "Internal server error"
+
+tags:
+  - name: plug
+    description: Smart plug control operations
+  - name: benchmark
+    description: CoreMark benchmark operations
