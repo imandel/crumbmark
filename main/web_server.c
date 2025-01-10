@@ -153,6 +153,8 @@ esp_err_t status_get_handler(httpd_req_t *req) {
 cJSON *status_json = create_json_status();
     char *json_str = cJSON_Print(status_json);
     httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Connection", "close");
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
     httpd_resp_send(req, json_str, strlen(json_str));
 cJSON_Delete(status_json);
     cJSON_free(json_str);
@@ -242,6 +244,8 @@ esp_err_t root_handler(httpd_req_t *req) {
     
     httpd_resp_set_type(req, "text/html; charset=UTF-8");
     httpd_resp_set_hdr(req, "Cache-Control", "no-cache, no-store, must-revalidate");
+    httpd_resp_set_hdr(req, "Connection", "close");
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
     httpd_resp_send(req, html, strlen(html));
     return ESP_OK;
 }
@@ -277,8 +281,12 @@ httpd_uri_t state_put_uri = {
 httpd_handle_t start_webserver() {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.server_port = 80;
-    config.lru_purge_enable = true;  // Enable LRU purge
-    config.max_uri_handlers = 8;     // Increase max handlers
+    config.lru_purge_enable = true;      // Enable LRU purge
+    config.max_uri_handlers = 8;         // Increase max handlers
+    config.max_open_sockets = 3;         // Allow multiple concurrent connections
+    config.core_id = tskNO_AFFINITY;     // Allow running on any core
+    config.task_priority = 5;            // Higher priority for server task
+    config.stack_size = 4096;            // Increased stack size
 
     httpd_handle_t server = NULL;
     if (httpd_start(&server, &config) == ESP_OK) {
