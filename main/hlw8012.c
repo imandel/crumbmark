@@ -9,15 +9,15 @@ static int64_t last_cf_pulse = 0;
 static int64_t last_cf1_pulse = 0;
 
 static void IRAM_ATTR cf_isr_handler(void* arg) {
-    taskENTER_CRITICAL();
+    UBaseType_t saved_interrupt_status = taskENTER_CRITICAL_FROM_ISR();
     last_cf_pulse = esp_timer_get_time();
-    taskEXIT_CRITICAL();
+    taskEXIT_CRITICAL_FROM_ISR(saved_interrupt_status);
 }
 
 static void IRAM_ATTR cf1_isr_handler(void* arg) {
-    taskENTER_CRITICAL();
+    UBaseType_t saved_interrupt_status = taskENTER_CRITICAL_FROM_ISR();
     last_cf1_pulse = esp_timer_get_time();
-    taskEXIT_CRITICAL();
+    taskEXIT_CRITICAL_FROM_ISR(saved_interrupt_status);
 }
 
 esp_err_t hlw8012_init(const hlw8012_config_t *config) {
