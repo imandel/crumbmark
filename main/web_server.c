@@ -2,7 +2,6 @@
 #include "esp_log.h"
 #include "esp_wifi.h"
 #include "coremark.h"
-#include "core_main.h"
 #include "nvs_flash.h"
 #include "esp_http_server.h"
 #include "esp_timer.h"
