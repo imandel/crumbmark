@@ -85,7 +85,9 @@ esp_err_t hlw8012_get_readings(hlw8012_readings_t *readings) {
     // Calculate power
     int64_t power_period = esp_timer_get_time() - last_cf_pulse;
     if (power_period > 0) {
-        current_readings.power = sensor_config.power_multiplier / power_period;
+        // Convert microseconds to seconds and apply multiplier
+        float power_freq = 1000000.0f / power_period;  // Convert to frequency in Hz
+        current_readings.power = power_freq * sensor_config.power_multiplier;
     }
     
     // Update energy (kWh) based on power
