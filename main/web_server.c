@@ -33,10 +33,10 @@ static SemaphoreHandle_t benchmark_mutex = NULL;
 static void benchmark_task(void *pvParameters) {
     ee_printf("Starting CoreMark benchmark...\n");
     
-    // Ensure we're at lowest priority
-    vTaskPrioritySet(NULL, tskIDLE_PRIORITY);
-    // Shorter initial delay
-    vTaskDelay(pdMS_TO_TICKS(100));
+    // Set to low but not lowest priority
+    vTaskPrioritySet(NULL, tskIDLE_PRIORITY + 2);
+    // Short delay to let system stabilize
+    vTaskDelay(pdMS_TO_TICKS(50));
     
     int64_t start_time = esp_timer_get_time();
     int error_count = coremark_main();
