@@ -22,7 +22,7 @@ Original Author: Shay Gal-on
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#define ITERATIONS 	25000 // Increased from default to ensure >10 sec runtime
+#define ITERATIONS 	200000 // Increased to ensure >10 sec runtime
 
 #if VALIDATION_RUN
 	volatile ee_s32 seed1_volatile=0x3415;
@@ -53,13 +53,12 @@ Original Author: Shay Gal-on
 	If there are issues with the return value overflowing, increase this value.
 	*/
 #include "esp_timer.h"
-#define NSECS_PER_SEC 1000000 // ESP timer gives microseconds
-#define CORETIMETYPE int64_t 
+#define CORETIMETYPE int64_t
 #define GETMYTIME(_t) (*_t=esp_timer_get_time())
 #define MYTIMEDIFF(fin,ini) ((fin)-(ini))
 #define TIMER_RES_DIVIDER 1
 #define SAMPLE_TIME_IMPLEMENTATION 1
-#define EE_TICKS_PER_SEC (NSECS_PER_SEC)
+#define EE_TICKS_PER_SEC (1000000LL)
 
 /** Define Host specific (POSIX), or target specific global time variables. */
 static CORETIMETYPE start_time_val, stop_time_val;
@@ -79,12 +78,11 @@ void stop_time(void) {
 }
 
 CORE_TICKS get_time(void) {
-    CORE_TICKS elapsed = (CORE_TICKS)(MYTIMEDIFF(stop_time_val, start_time_val));
-    return elapsed;
+    return (CORE_TICKS)(MYTIMEDIFF(stop_time_val, start_time_val));
 }
 
 secs_ret time_in_secs(CORE_TICKS ticks) {
-    secs_ret retval = ((secs_ret)ticks) / (secs_ret)NSECS_PER_SEC;
+    secs_ret retval = ((secs_ret)ticks) / ((secs_ret)EE_TICKS_PER_SEC);
     return retval;
 }
 
