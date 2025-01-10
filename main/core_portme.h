@@ -170,6 +170,17 @@ typedef size_t ee_size_t;
 #define MAIN_HAS_NORETURN 0
 #endif
 
+/* Configuration : MAIN_HAS_NOARGC
+	Needed if platform does not support getting arguments to main.
+	
+	Valid values :
+	0 - argc/argv to main is supported
+	1 - argc/argv to main is not supported
+*/
+#ifndef MAIN_HAS_NOARGC
+#define MAIN_HAS_NOARGC 1
+#endif
+
 /* Variable : default_num_contexts
 	Not used for this simple port, must cintain the value 1.
 */
