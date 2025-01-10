@@ -136,11 +136,6 @@ esp_err_t state_put_handler(httpd_req_t *req) {
         cJSON_free(json_str);
         
         return err;
-    } else {
-        cJSON_Delete(root);
-        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Missing or invalid 'state' field");
-        return ESP_FAIL;
-    }
 }
 
 // Handler for root URL
