@@ -18,6 +18,7 @@ esp_err_t benchmark_handler(httpd_req_t *req) {
     char response[64];
     
     // Run CoreMark benchmark
+    ee_printf("Starting CoreMark benchmark...\n");
     coremark_main();
     
     snprintf(response, sizeof(response), "Benchmark completed");
