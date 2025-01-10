@@ -24,7 +24,7 @@ static void benchmark_task(void *pvParameters) {
     
     // Create a higher priority task for system monitoring
     TaskHandle_t system_task = NULL;
-    if (xTaskCreate(&vTaskDelay, "system", 2048, NULL, configMAX_PRIORITIES-1, &system_task) != pdPASS) {
+    if (xTaskCreate((TaskFunction_t)&vTaskDelay, "system", 2048, (void*)100, configMAX_PRIORITIES-1, &system_task) != pdPASS) {
         ee_printf("Failed to create system task!\n");
         vTaskDelete(NULL);
         return;
