@@ -94,14 +94,10 @@ secs_ret time_in_secs(CORE_TICKS ticks) {
     ee_printf("Debug - ticks (raw): %lu\n", (unsigned long)ticks);
     ee_printf("Debug - EE_TICKS_PER_SEC (raw): %lu\n", (unsigned long)EE_TICKS_PER_SEC);
     
-    secs_ret ticks_cast = (secs_ret)ticks;
-    secs_ret hz_cast = (secs_ret)EE_TICKS_PER_SEC;
-    
-    ee_printf("Debug - ticks (cast to double): %.6f\n", (double)ticks_cast);
-    ee_printf("Debug - EE_TICKS_PER_SEC (cast to double): %.6f\n", (double)hz_cast);
-    
-    secs_ret retval = ticks_cast / hz_cast;
-    ee_printf("Debug - division result: %.6f\n", (double)retval);
+    secs_ret retval = ((double)ticks) / ((double)EE_TICKS_PER_SEC);
+    ee_printf("Debug - ticks (cast to double): %.6f\n", (double)ticks);
+    ee_printf("Debug - EE_TICKS_PER_SEC (cast to double): %.6f\n", (double)EE_TICKS_PER_SEC);
+    ee_printf("Debug - division result: %.6f\n", retval);
     
     return retval;
 }
