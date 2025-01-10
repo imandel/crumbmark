@@ -2,6 +2,7 @@
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/portmacro.h"
 
 static hlw8012_config_t sensor_config;
 static hlw8012_readings_t current_readings = {0};
