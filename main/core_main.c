@@ -21,6 +21,8 @@ Original Author: Shay Gal-on
 */
 #include "sdkconfig.h"
 #include "coremark.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 /* Function: iterate
 	Run the benchmark for a specified number of iterations.
