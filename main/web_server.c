@@ -98,7 +98,30 @@ esp_err_t state_put_handler(httpd_req_t *req) {
 return ESP_OK;
 }
 
+// Handler for root URL
+esp_err_t root_handler(httpd_req_t *req) {
+    char html[512];
+    snprintf(html, sizeof(html),
+        "<!DOCTYPE html><html><body>"
+        "<h1>Hello World</h1>"
+        "<p>Current plug state: %s</p>"
+        "</body></html>",
+        plug_state ? "ON" : "OFF"
+    );
+    
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_send(req, html, strlen(html));
+    return ESP_OK;
+}
+
 // URI handlers
+httpd_uri_t root_uri = {
+    .uri = "/",
+    .method = HTTP_GET,
+    .handler = root_handler,
+    .user_ctx = NULL
+};
+
 httpd_uri_t status_uri = {
     .uri = "/plug/status",
     .method = HTTP_GET,
@@ -126,6 +149,7 @@ httpd_handle_t start_webserver() {
     httpd_handle_t server = NULL;
     if (httpd_start(&server, &config) == ESP_OK) {
     ESP_LOGI(TAG, "Webserver started on port 80");
+        httpd_register_uri_handler(server, &root_uri);
         httpd_register_uri_handler(server, &status_uri);
         httpd_register_uri_handler(server, &state_get_uri);
         httpd_register_uri_handler(server, &state_put_uri);
