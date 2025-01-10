@@ -20,60 +20,98 @@ typedef struct {
     int iterations_per_sec;
     float total_time;
     int error_count;
+    bool is_running;
 } benchmark_result_t;
 
-// Queue handle for benchmark results
-static QueueHandle_t benchmark_queue = NULL;
+// Shared benchmark state
+static benchmark_result_t benchmark_state = {
+    .is_running = false
+};
+static SemaphoreHandle_t benchmark_mutex = NULL;
 
 // Forward declaration and implementation of benchmark task
 static void benchmark_task(void *pvParameters) {
-    benchmark_result_t result = {0};
-    
     ee_printf("Starting CoreMark benchmark...\n");
     
-    // Set moderate priority to allow system tasks to run
     vTaskPrioritySet(NULL, configMAX_PRIORITIES - 3);
-    
-    // Allow WiFi and system tasks to stabilize
     vTaskDelay(pdMS_TO_TICKS(1000));
     
-    // Record start time
     int64_t start_time = esp_timer_get_time();
+    int error_count = coremark_main();
+    float total_time = (esp_timer_get_time() - start_time) / 1000000.0;
     
-    // Run benchmark with interrupts enabled to maintain system stability
-    result.error_count = coremark_main();
-    
-    // Calculate results
-    result.total_time = (esp_timer_get_time() - start_time) / 1000000.0; // Convert to seconds
-    result.iterations_per_sec = (result.total_time > 0) ? (1000 / result.total_time) : 0;
-    
-    // Send results to queue
-    xQueueSend(benchmark_queue, &result, portMAX_DELAY);
+    xSemaphoreTake(benchmark_mutex, portMAX_DELAY);
+    benchmark_state.error_count = error_count;
+    benchmark_state.total_time = total_time;
+    benchmark_state.iterations_per_sec = (total_time > 0) ? (1000 / total_time) : 0;
+    benchmark_state.is_running = false;
+    xSemaphoreGive(benchmark_mutex);
     
     vTaskDelete(NULL);
 }
 
-esp_err_t benchmark_handler(httpd_req_t *req) {
-    // Create queue if it doesn't exist
-    if (benchmark_queue == NULL) {
-        benchmark_queue = xQueueCreate(1, sizeof(benchmark_result_t));
-    }
-    
-    // Create a task to run the benchmark
-    xTaskCreate(benchmark_task, "benchmark", 8192, NULL, tskIDLE_PRIORITY + 1, NULL);
-    
-    // Wait for results
-    benchmark_result_t result;
-    if (xQueueReceive(benchmark_queue, &result, pdMS_TO_TICKS(30000)) != pdTRUE) {
+// Add new endpoint to get benchmark results
+esp_err_t benchmark_results_handler(httpd_req_t *req) {
+    if (benchmark_mutex == NULL) {
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
-    
-    // Create JSON response
+
+    xSemaphoreTake(benchmark_mutex, portMAX_DELAY);
+    benchmark_result_t current_state = benchmark_state;
+    xSemaphoreGive(benchmark_mutex);
+
     cJSON *root = cJSON_CreateObject();
-    cJSON_AddNumberToObject(root, "iterations_per_sec", result.iterations_per_sec);
-    cJSON_AddNumberToObject(root, "total_time_seconds", result.total_time);
-    cJSON_AddNumberToObject(root, "error_count", result.error_count);
+    cJSON_AddBoolToObject(root, "running", current_state.is_running);
+    
+    if (!current_state.is_running && current_state.total_time > 0) {
+        cJSON_AddNumberToObject(root, "iterations_per_sec", current_state.iterations_per_sec);
+        cJSON_AddNumberToObject(root, "total_time_seconds", current_state.total_time);
+        cJSON_AddNumberToObject(root, "error_count", current_state.error_count);
+    }
+
+    char *json_str = cJSON_Print(root);
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Connection", "close");
+    esp_err_t err = httpd_resp_send(req, json_str, strlen(json_str));
+    
+    cJSON_Delete(root);
+    cJSON_free(json_str);
+    return err;
+}
+
+esp_err_t benchmark_handler(httpd_req_t *req) {
+    if (benchmark_mutex == NULL) {
+        benchmark_mutex = xSemaphoreCreateMutex();
+    }
+
+    xSemaphoreTake(benchmark_mutex, portMAX_DELAY);
+    bool already_running = benchmark_state.is_running;
+    xSemaphoreGive(benchmark_mutex);
+
+    if (already_running) {
+        // Return current status if benchmark is already running
+        cJSON *root = cJSON_CreateObject();
+        cJSON_AddBoolToObject(root, "running", true);
+        char *json_str = cJSON_Print(root);
+        httpd_resp_set_type(req, "application/json");
+        httpd_resp_set_hdr(req, "Connection", "close");
+        esp_err_t err = httpd_resp_send(req, json_str, strlen(json_str));
+        cJSON_Delete(root);
+        cJSON_free(json_str);
+        return err;
+    }
+
+    // Start new benchmark
+    xSemaphoreTake(benchmark_mutex, portMAX_DELAY);
+    benchmark_state.is_running = true;
+    xSemaphoreGive(benchmark_mutex);
+    
+    xTaskCreate(benchmark_task, "benchmark", 8192, NULL, tskIDLE_PRIORITY + 1, NULL);
+    
+    // Return immediate response
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddBoolToObject(root, "running", true);
     
     char *json_str = cJSON_Print(root);
     httpd_resp_set_type(req, "application/json");
@@ -257,6 +295,14 @@ httpd_handle_t start_webserver() {
             .user_ctx = NULL
         };
         httpd_register_uri_handler(server, &benchmark_uri);
+
+        httpd_uri_t benchmark_results_uri = {
+            .uri = "/benchmark/results",
+            .method = HTTP_GET,
+            .handler = benchmark_results_handler,
+            .user_ctx = NULL
+        };
+        httpd_register_uri_handler(server, &benchmark_results_uri);
         return server;
     }
     ESP_LOGE(TAG, "Failed to start webserver");
