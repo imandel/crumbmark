@@ -15,16 +15,31 @@
 
 static const char *TAG = "smart_plug_proxy";
 
+// Forward declaration
+static void benchmark_task(void *pvParameters);
+
+// Implementation
 static void benchmark_task(void *pvParameters) {
     ee_printf("Starting CoreMark benchmark...\n");
     
     // Create a higher priority task for system monitoring
-    xTaskCreate(&vTaskDelay, "system", 2048, NULL, configMAX_PRIORITIES-1, NULL);
+    TaskHandle_t system_task = NULL;
+    if (xTaskCreate(&vTaskDelay, "system", 2048, NULL, configMAX_PRIORITIES-1, &system_task) != pdPASS) {
+        ee_printf("Failed to create system task!\n");
+        vTaskDelete(NULL);
+        return;
+    }
     
     // Lower our own priority
     vTaskPrioritySet(NULL, tskIDLE_PRIORITY + 1);
     
+    // Run benchmark with periodic yields
     coremark_main();
+    
+    // Cleanup
+    if (system_task != NULL) {
+        vTaskDelete(system_task);
+    }
     vTaskDelete(NULL);
 }
 

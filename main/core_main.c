@@ -214,6 +214,8 @@ MAIN_RETURN_TYPE coremark_main(int argc, char *argv[]) {
 	}
 	/* perform actual benchmark */
 	start_time();
+	// Yield to prevent watchdog
+	vTaskDelay(1);
 #if (MULTITHREAD>1)
 	if (default_num_contexts>MULTITHREAD) {
 		default_num_contexts=MULTITHREAD;
@@ -228,6 +230,8 @@ MAIN_RETURN_TYPE coremark_main(int argc, char *argv[]) {
 	}
 #else
 	iterate(&results[0]);
+	// Yield to prevent watchdog
+	vTaskDelay(1); 
 #endif
 	stop_time();
 	total_time=get_time();
