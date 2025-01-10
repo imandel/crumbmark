@@ -19,12 +19,18 @@ static const char *TAG = "smart_plug_proxy";
 static void benchmark_task(void *pvParameters);
 
 // Implementation
+static void system_monitor_task(void *pvParameters) {
+    while(1) {
+        vTaskDelay(pdMS_TO_TICKS(100));  // 100ms delay
+    }
+}
+
 static void benchmark_task(void *pvParameters) {
     ee_printf("Starting CoreMark benchmark...\n");
     
     // Create a higher priority task for system monitoring
     TaskHandle_t system_task = NULL;
-    if (xTaskCreate((TaskFunction_t)&vTaskDelay, "system", 2048, (void*)100, configMAX_PRIORITIES-1, &system_task) != pdPASS) {
+    if (xTaskCreate(system_monitor_task, "system", 2048, NULL, configMAX_PRIORITIES-1, &system_task) != pdPASS) {
         ee_printf("Failed to create system task!\n");
         vTaskDelete(NULL);
         return;
