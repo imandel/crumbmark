@@ -98,40 +98,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /plug/power:
-    get:
-      summary: Get power measurements
-      description: Returns current power consumption measurements from the HLW8012 sensor
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  voltage:
-                    type: number
-                    description: Current voltage (V)
-                    example: 230.5
-                  current:
-                    type: number
-                    description: Current draw (A)
-                    example: 0.5
-                  power:
-                    type: number
-                    description: Active power (W)
-                    example: 115.25
-                  energy:
-                    type: number
-                    description: Energy consumption (kWh)
-                    example: 1.234
-        '500':
-          description: Failed to read power measurements
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 
   /benchmark:
     get:

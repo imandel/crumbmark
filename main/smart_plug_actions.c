@@ -77,25 +77,6 @@ static esp_err_t plug_init(void) {
     return hlw8012_init(&hlw_config);
 }
 
-static action_response_t handle_get_power(const cJSON *request) {
-    action_response_t response = {0};
-    hlw8012_readings_t readings;
-    
-    if (hlw8012_get_readings(&readings) == ESP_OK) {
-        cJSON *root = cJSON_CreateObject();
-        cJSON_AddNumberToObject(root, "voltage", readings.voltage);
-        cJSON_AddNumberToObject(root, "current", readings.current);
-        cJSON_AddNumberToObject(root, "power", readings.power);
-        cJSON_AddNumberToObject(root, "energy", readings.energy);
-        response.response = cJSON_Print(root);
-        response.status = ESP_OK;
-        cJSON_Delete(root);
-    } else {
-        response.status = ESP_FAIL;
-        response.response = strdup("Failed to read power measurements");
-    }
-    return response;
-}
 
 static const device_endpoint_t plug_endpoints[] = {
     {
@@ -110,12 +91,6 @@ static const device_endpoint_t plug_endpoints[] = {
         .handler = handle_put_state,
         .description = "Set plug state"
     },
-    {
-        .uri = "/power",
-        .method = ACTION_GET,
-        .handler = handle_get_power,
-        .description = "Get power measurements"
-    }
 };
 
 const device_config_t DEVICE_CONFIG = {
