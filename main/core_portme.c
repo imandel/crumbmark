@@ -53,7 +53,7 @@ Original Author: Shay Gal-on
 	If there are issues with the return value overflowing, increase this value.
 	*/
 #include "esp_timer.h"
-#define CORETIMETYPE int64_t
+#define CORETIMETYPE CORE_TICKS
 #define GETMYTIME(_t) (*_t=esp_timer_get_time())
 #define MYTIMEDIFF(fin,ini) ((fin)-(ini))
 #define TIMER_RES_DIVIDER 1
