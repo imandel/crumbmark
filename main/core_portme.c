@@ -22,7 +22,7 @@ Original Author: Shay Gal-on
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#define ITERATIONS 	200000 // Reduced to prevent watchdog while still ensuring >10 sec runtime
+#define ITERATIONS 	2500 // Reduced iterations for testing
 
 #if VALIDATION_RUN
 	volatile ee_s32 seed1_volatile=0x3415;
