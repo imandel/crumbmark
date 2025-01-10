@@ -21,6 +21,9 @@ static const char *TAG = "main";
 static int s_retry_num = 0;
 static httpd_handle_t server = NULL;
 
+// Initialize mutex for web server
+SemaphoreHandle_t mutex = NULL;
+
 static esp_err_t event_handler(void *ctx, system_event_t *event)
 {
     switch(event->event_id) {
@@ -81,6 +84,13 @@ void wifi_init_sta(void)
 
 void app_main(void)
 {
+    // Create mutex before anything else
+    mutex = xSemaphoreCreateMutex();
+    if (mutex == NULL) {
+        ESP_LOGE(TAG, "Failed to create mutex");
+        return;
+    }
+
     //Initialize NVS
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
