@@ -13,8 +13,8 @@
 #include "esp_event.h"
 #include "esp_event_loop.h"
 
-#define EXAMPLE_ESP_WIFI_SSID      "your-ssid"
-#define EXAMPLE_ESP_WIFI_PASS      "your-password"
+#define EXAMPLE_ESP_WIFI_SSID      "deviceFarm"
+#define EXAMPLE_ESP_WIFI_PASS      "device@theFarm"
 #define EXAMPLE_ESP_MAXIMUM_RETRY  5
 
 static const char *TAG = "main";
