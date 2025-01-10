@@ -2,6 +2,7 @@
 #include "esp_log.h"
 #include "esp_wifi.h"
 #include "coremark.h"
+#include "core_main.h"
 #include "nvs_flash.h"
 #include "esp_http_server.h"
 #include "esp_timer.h"
@@ -20,7 +21,7 @@ esp_err_t benchmark_handler(httpd_req_t *req) {
     // Run CoreMark benchmark
     int argc = 0;
     char *argv[] = {NULL};
-    main(argc, argv);
+    coremark_main(argc, argv);
     
     snprintf(response, sizeof(response), "Benchmark completed");
     httpd_resp_send(req, response, strlen(response));
