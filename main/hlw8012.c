@@ -8,18 +8,16 @@ static hlw8012_readings_t current_readings = {0};
 static int64_t last_cf_pulse = 0;
 static int64_t last_cf1_pulse = 0;
 
-static portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
-
 static void IRAM_ATTR cf_isr_handler(void* arg) {
-    portENTER_CRITICAL_ISR(&mux);
+    taskENTER_CRITICAL();
     last_cf_pulse = esp_timer_get_time();
-    portEXIT_CRITICAL_ISR(&mux);
+    taskEXIT_CRITICAL();
 }
 
 static void IRAM_ATTR cf1_isr_handler(void* arg) {
-    portENTER_CRITICAL_ISR(&mux);
+    taskENTER_CRITICAL();
     last_cf1_pulse = esp_timer_get_time();
-    portEXIT_CRITICAL_ISR(&mux);
+    taskEXIT_CRITICAL();
 }
 
 esp_err_t hlw8012_init(const hlw8012_config_t *config) {
