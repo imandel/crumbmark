@@ -72,20 +72,20 @@ static CORETIMETYPE start_time_val, stop_time_val;
 void start_time(void) {
     taskENTER_CRITICAL();
     GETMYTIME(&start_time_val);
-    ee_printf("Debug: start_time = %lld\n", (long long)start_time_val);
+    ee_printf("Debug: start_time = %lld\n", start_time_val);
     taskEXIT_CRITICAL();
 }
 
 void stop_time(void) {
     taskENTER_CRITICAL();
     GETMYTIME(&stop_time_val);
-    ee_printf("Debug: stop_time = %lld\n", (long long)stop_time_val);
+    ee_printf("Debug: stop_time = %lld\n", stop_time_val);
     taskEXIT_CRITICAL();
 }
 
 CORE_TICKS get_time(void) {
     CORE_TICKS elapsed = MYTIMEDIFF(stop_time_val, start_time_val);
-    ee_printf("Debug: elapsed ticks = %lld\n", (long long)elapsed);
+    ee_printf("Debug: elapsed ticks = %lld\n", elapsed);
     return elapsed;
 }
 
