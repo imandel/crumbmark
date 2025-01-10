@@ -54,12 +54,12 @@ Original Author: Shay Gal-on
 	*/
 #include "esp_timer.h"
 #define NSECS_PER_SEC 1000000 // ESP timer gives microseconds
-#define CORETIMETYPE int64_t
+#define CORETIMETYPE int64_t 
 #define GETMYTIME(_t) (*_t=esp_timer_get_time())
 #define MYTIMEDIFF(fin,ini) ((fin)-(ini))
-#define TIMER_RES_DIVIDER 1000000 // Convert microseconds to seconds
+#define TIMER_RES_DIVIDER 1
 #define SAMPLE_TIME_IMPLEMENTATION 1
-#define EE_TICKS_PER_SEC (NSECS_PER_SEC / TIMER_RES_DIVIDER)
+#define EE_TICKS_PER_SEC (NSECS_PER_SEC)
 
 /** Define Host specific (POSIX), or target specific global time variables. */
 static CORETIMETYPE start_time_val, stop_time_val;
@@ -71,39 +71,21 @@ static CORETIMETYPE start_time_val, stop_time_val;
 	or zeroing some system parameters - e.g. setting the cpu clocks cycles to 0.
 */
 void start_time(void) {
-	GETMYTIME(&start_time_val );      
+    GETMYTIME(&start_time_val);
 }
-/* Function : stop_time
-	This function will be called right after ending the timed portion of the benchmark.
 
-	Implementation may be capturing a system timer (as implemented in the example code) 
-	or other system parameters - e.g. reading the current value of cpu cycles counter.
-*/
 void stop_time(void) {
-	GETMYTIME(&stop_time_val );      
+    GETMYTIME(&stop_time_val);
 }
-/* Function : get_time
-	Return an abstract "ticks" number that signifies time on the system.
-	
-	Actual value returned may be cpu cycles, milliseconds or any other value,
-	as long as it can be converted to seconds by <time_in_secs>.
-	This methodology is taken to accomodate any hardware or simulated platform.
-	The sample implementation returns millisecs by default, 
-	and the resolution is controlled by <TIMER_RES_DIVIDER>
-*/
-CORE_TICKS get_time(void) {
-	CORE_TICKS elapsed=(CORE_TICKS)(MYTIMEDIFF(stop_time_val, start_time_val));
-	return elapsed;
-}
-/* Function : time_in_secs
-	Convert the value returned by get_time to seconds.
 
-	The <secs_ret> type is used to accomodate systems with no support for floating point.
-	Default implementation implemented by the EE_TICKS_PER_SEC macro above.
-*/
+CORE_TICKS get_time(void) {
+    CORE_TICKS elapsed = (CORE_TICKS)(MYTIMEDIFF(stop_time_val, start_time_val));
+    return elapsed;
+}
+
 secs_ret time_in_secs(CORE_TICKS ticks) {
-	secs_ret retval=((secs_ret)ticks) / (secs_ret)EE_TICKS_PER_SEC;
-	return retval;
+    secs_ret retval = ((secs_ret)ticks) / (secs_ret)NSECS_PER_SEC;
+    return retval;
 }
 
 ee_u32 default_num_contexts=1;
